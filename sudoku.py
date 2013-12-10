@@ -106,8 +106,8 @@ class Puzzle:
                 if len(icell_table) == 1:
                     self.fill_in(list(icell_table.keys())[0], number,
                                  'by seeking %d in %s' % (number, group.name))
-                    break
-                logger.info('fail to add %d to %s' % (number, group.name))
+                else:
+                    logger.info('fail to add %d to %s' % (number, group.name))
                         
     def fill_in(self, icell, number, prompt):
         cell = self.cells[icell]
@@ -124,8 +124,8 @@ if __name__ == '__main__':
     parser.add_argument('filename')
     parser.add_argument('--debug', action='store_true')
     args = parser.parse_args()
-    if args.debug:
-        logging.basicConfig(level='INFO')
+    logging.basicConfig(stream=sys.stdout,
+                        level='DEBUG' if args.debug else 'WARNING')
 
     p = Puzzle(args.filename)
     p.print('initial (%d blanks)' % (p.num_blanks,))
