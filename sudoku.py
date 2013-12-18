@@ -7,10 +7,12 @@ import pprint
 import re
 import sys
 
+import jmutils  # see github.com/jhmark/jmutils
+
 logger = logging.getLogger('sudoku')
 
-Cell = collections.namedtuple('Cell', 'value groups')
-Group = collections.namedtuple('Group', 'name icells contents')
+Cell = jmutils.Struct('Cell', ('value', 'groups'))
+Group = jmutils.Struct('Group', ('name', 'icells', 'contents'))
 
 def lrange(start, stop, step=1):
     return list(range(start, stop, step))
@@ -19,13 +21,13 @@ class Puzzle:
     def __init__(self, filename):
         with open(filename) as f:
             vals = re.findall('[\\.0-9]', f.read())
-        self.cells = [Cell([None if val == '.' else int(val)], [])
+        self.cells = [Cell(None if val == '.' else int(val), [])
                       for val in vals]
         self.groups = self.make_groups()
 
         self.num_blanks = 0
         for cell in self.cells:
-            if cell.value[0] is None:
+            if cell.value is None:
                 self.num_blanks += 1
 
     def make_groups(self):
@@ -53,7 +55,7 @@ class Puzzle:
                 cell.groups.append(group)
 
                 # Record the actual puzzle contents in the Group record
-                v = cell.value[0]
+                v = cell.value
                 if v is not None:
                     group.contents[v] = True
         return result
@@ -64,7 +66,7 @@ class Puzzle:
             print(prompt + ':')
         for irow in range(9):
             for icol in range(9):
-                c = self.cells[irow * 9 + icol].value[0]
+                c = self.cells[irow * 9 + icol].value
                 if c is None:
                     c = '.'
                 else:
@@ -87,7 +89,7 @@ class Puzzle:
                 logger.info('trying to add %d to %s' % (number, group.name))
                 icell_table = {}
                 for icell in group.icells:
-                    if self.cells[icell].value[0] is None:
+                    if self.cells[icell].value is None:
                         icell_table[icell] = True
 
                 # icell_table contains candidate spots
@@ -111,8 +113,8 @@ class Puzzle:
                         
     def fill_in(self, icell, number, prompt):
         cell = self.cells[icell]
-        assert cell.value[0] is None
-        cell.value[0] = number
+        assert cell.value is None
+        cell.value = number
         self.num_blanks -= 1
         for group in cell.groups:
             group.contents[number] = True
